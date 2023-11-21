@@ -21,7 +21,7 @@ modelqualityresults <- data.frame(accuracy = rep(0, nrep), sensitivity = rep(0, 
 df <- data.frame(example)
 set.seed(1)
 nreps <- 100
-ccr = rep(0, nreps)
+ccr <- rep(0, nreps)
 idx_tr <- sample(nrow(df), 150)
 train <- df[idx_tr, ]
 test <- df[-idx_tr, ]
@@ -41,3 +41,12 @@ library(rpart.plot)
 tree <- rpart(Survived ~ ., data = train)
 pred <- predict(tree, newdata = test, type = "vector")
 crr[i] <- sum(pred == test$Survived) / nrow(test)
+
+
+
+# Cookie-cutter end function:
+
+my_model = function(test){
+    pred = predict(my.fitted.model, test, type = "class")
+    return(pred)
+}
