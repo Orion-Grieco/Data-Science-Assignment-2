@@ -10,7 +10,7 @@ library("rpart.plot")
 library("randomForest")
 
 # function to save a graph to RGraphs folder given a title
-save = function(title){
+img = function(title){
   ggsave(title,
          path="C:/Users/arjun/OneDrive/Desktop/DataSci/RGraphs",
          width=25,
@@ -18,8 +18,8 @@ save = function(title){
          units = "cm") 
 }
 
-# creating a function initialize() to preprocess data
-initialize = function(data){
+# creating a function clean() to preprocess data
+clean = function(data){
   # removing the Ticket column
   modifiedData = subset(data, select = -Ticket)
   
@@ -33,25 +33,26 @@ initialize = function(data){
   
   return(modifiedData)
 }
-df = initialize(titanic.train) # storing preprocessed data in the variable 'df'
+df = clean(titanic.train) # storing preprocessed data in the variable 'df'
 
 
 
 # creating the grid of values to be used in the classification tree
 gminsplit = seq(2,40,2) # minsplit sequence: 2,4,6...36,38,40
-gmaxdepth = seq(5,30,5) # maxdepth sequence: 5,10...25,30
+gmaxdepth = seq(2,5,1) # maxdepth sequence: 5,10...25,30
 gcp = 10^(-seq(2,4,1)) # cp sequence: 0.01, 0.001, 0.0001
 parameters = expand.grid(minsplit = gminsplit, 
                          maxdepth = gmaxdepth, 
                          cp = gcp)
+
+# repeated validation - classification tree
+nrep = 50 # 50 repetitions per parameter combination
+
 # creating matrices to store accuracy, sensitivity, and specificity values
 accuracy = matrix(NA, nrep, nrow(parameters))
 precision = matrix(NA, nrep, nrow(parameters))
 specificity = matrix(NA, nrep, nrow(parameters))
 
-
-# repeated validation - classification tree
-nrep = 50 # 50 repetitions per parameter combination
 
 for (i in 1:nrep){
   
@@ -82,19 +83,23 @@ for (i in 1:nrep){
   }
 }
 
+# associating the mean accuracy/precision/specificity values with each hyperparameter combination
 parameters$accuracy = apply(accuracy, 2, mean)
 parameters$precision = apply(precision, 2, mean)
 parameters$specificity = apply(specificity, 2, mean)
+# averaging those values to find the mean 'efficacy'
 parameters$efficacy = (parameters$accuracy + 
                          parameters$precision + 
                          parameters$specificity) / 3
 
+# creating and saving a graph of the efficacy depending on hyperparameters 
 ggplot(parameters) + aes(x=minsplit, y=efficacy, color=as.factor(maxdepth)) + 
   geom_line() + geom_point(size=2) + labs(x="Minsplit", y="Average Accuracy", color="Maxdepth") + facet_grid(cp~.)
-save("Efficacy by maxdepth, minsplit, and cp.png")
+img("Efficacy by maxdepth, minsplit, and cp.png")
 
+# finding the best parameter combination
 best = parameters[which.max(parameters$efficacy),]
-
+print(best)
 
 
 # RANDOM FOREST
@@ -108,6 +113,9 @@ parameters2 = expand.grid(ntree = gntree,
 accuracy2 = matrix(NA, nrep, nrow(parameters2))
 precision2 = matrix(NA, nrep, nrow(parameters2))
 specificity2 = matrix(NA, nrep, nrow(parameters2))
+
+# the '2' in the variable name means it's associated with the random forest
+  # this is true throughout the code
 
 
 # repeated validation - random forest
@@ -139,28 +147,44 @@ for (i in 1:nrep){
   }
 }
 
+# same as above
+# associating the mean accuracy/precision/specificity values with each hyperparameter combination
 parameters2$accuracy = apply(accuracy2, 2, mean)
 parameters2$precision = apply(precision2, 2, mean)
 parameters2$specificity = apply(specificity2, 2, mean)
+# averaging those values to find the mean 'efficacy'
 parameters2$efficacy = (parameters2$accuracy + 
                          parameters2$precision + 
                          parameters2$specificity) / 3
 
+# creating and saving a graph of the efficacy depending on hyperparameters 
 ggplot(parameters2) + aes(x=ntree, y=efficacy, color=as.factor(mtry)) + 
   geom_line() + geom_point(size=2) + labs(x="Ntree", y="Average Accuracy", color="Mtry")
-save("Efficacy by ntree and mtry.png")
+img("Efficacy by ntree and mtry.png")
 
+# finding the best parameter combination
 best2 = parameters2[which.max(parameters2$efficacy),]
+print(best2)
 
 
+# creating a function mimicking the best model
 my_model = function(test){
   
-  test$Survived = as.factor(test$Survived)
+  data = clean(test)
+  train = clean(titanic.train)
   
-  mytree = randomForest(Survived~., data=titanic.train, 
-                        ntree=best2$ntree[j],
-                        mtry=best2$mtry[j])
-  pred = predict(mytree, newdata=test, type="class") 
+  fittedmodel = randomForest(Survived~., data=train, 
+                        ntree=best2$ntree,
+                        mtry=best2$mtry)
+  pred = predict(fittedmodel, newdata=data, type="class") 
   
   return(pred)
 }
+
+# saving the best model in a file called modelData.RData
+save(my_model, clean, best, best2, file="modelData.RData")
+
+rm(list=ls())
+load("modelData.RData")
+load("titanic_train.RData")
+# my_model(newData)
