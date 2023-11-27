@@ -23,7 +23,7 @@ View(clean_data_v2)
 
 save <- function(title) {
         ggsave(title,
-                path = save_data,
+                path = "save_data",
                 width = 25,
                 height = 10,
                 units = "cm"
@@ -85,7 +85,7 @@ ggplot(parameters) +
 save("accuracy_analysis.png")
 
 best <- parameters[which.max(parameters$efficacy), ]
-
+best
 
 
 # RANDOM FOREST
@@ -160,3 +160,4 @@ my_model <- function(test) {
 
         return(pred)
 }
+
