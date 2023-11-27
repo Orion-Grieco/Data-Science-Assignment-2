@@ -161,5 +161,5 @@ my_model <- function(test) {
 
         return(pred)
 }
-predict_survival <- my_model(testing_data)
-View(predict_survival)
+#predict_survival <- my_model(test_data)
+#View(predict_survival)
