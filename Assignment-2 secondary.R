@@ -102,7 +102,8 @@ accuracy2 <- matrix(NA, nrep, nrow(parameters2))
 precision2 <- matrix(NA, nrep, nrow(parameters2))
 specificity2 <- matrix(NA, nrep, nrow(parameters2))
 
-
+nrep <- 50
+nrep <- 100
 # repeated validation - random forest
 for (i in 1:nrep) {
         # creating training data sets (80% of the data) and test sets (20%)
@@ -160,4 +161,5 @@ my_model <- function(test) {
 
         return(pred)
 }
-
+predict_survival <- my_model(testing_data)
+View(predict_survival)
