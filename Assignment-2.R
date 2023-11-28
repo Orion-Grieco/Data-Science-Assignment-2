@@ -70,13 +70,13 @@ create_data_sets_2 <- function(clean_data_v2, size = 0.8, train = TRUE) {
         total_row <- size * num_rows
         train_sample_v2 <- 1:total_row
         if (train == TRUE) {
-                return(clean_data_v2[train_sample, ])
+                return(clean_data_v2[train_sample_v2, ])
         } else {
-                return(clean_data_v2[-train_sample, ])
+                return(clean_data_v2[-train_sample_v2, ])
         }
 }
-training_data_v2 <- create_data_sets(clean_data_v2, 0.8, train = TRUE)
-testing_data_v2 <- create_data_sets(clean_data_v2, 0.8, train = FALSE)
+training_data_v2 <- create_data_sets_2(clean_data_v2, 0.8, train = TRUE)
+testing_data_v2 <- create_data_sets_2(clean_data_v2, 0.8, train = FALSE)
 
 
 
